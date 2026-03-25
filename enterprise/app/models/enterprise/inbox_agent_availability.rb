@@ -21,7 +21,8 @@ module Enterprise::InboxAgentAvailability
   end
 
   def capacity_filtering_enabled?
-    account.feature_enabled?('assignment_v2') &&
+    enable_auto_assignment? &&
+      account.feature_enabled?('assignment_v2') &&
       account.account_users.joins(:agent_capacity_policy).exists?
   end
 
