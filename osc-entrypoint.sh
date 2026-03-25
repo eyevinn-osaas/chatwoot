@@ -50,4 +50,9 @@ if [ -n "$POSTGRES_HOST" ] || [ -n "$DATABASE_URL" ]; then
     bundle exec rails db:chatwoot_prepare 2>&1 || echo "Migration warning - continuing..."
 fi
 
+# Start Sidekiq in background for background job processing
+# Required for ActionCable broadcasts, webhooks, email notifications, etc.
+echo "Starting Sidekiq worker..."
+bundle exec sidekiq -C config/sidekiq.yml &
+
 exec "$@"
