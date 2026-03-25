@@ -1,10 +1,6 @@
 #!/bin/bash
 set -eo pipefail
 
-PORT=${PORT:-8080}
-
-# Chatwoot Rails server runs on port 3000 internally but we proxy via PORT.
-# OSC sets PORT; we update the FRONTEND_URL to reflect the OSC hostname.
 export RAILS_ENV="${RAILS_ENV:-production}"
 export NODE_ENV="${NODE_ENV:-production}"
 export INSTALLATION_ENV="${INSTALLATION_ENV:-docker}"
@@ -53,9 +49,5 @@ if [ -n "$POSTGRES_HOST" ] || [ -n "$DATABASE_URL" ]; then
     echo "Running database migrations..."
     bundle exec rails db:chatwoot_prepare 2>&1 || echo "Migration warning - continuing..."
 fi
-
-# Chatwoot's Rails server binds to 3000; we tell OSC's proxy that $PORT is the external port.
-# The internal CMD runs on 3000, OSC platform maps PORT externally.
-export PORT=3000
 
 exec "$@"
