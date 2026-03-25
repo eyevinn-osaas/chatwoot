@@ -5,6 +5,11 @@ export RAILS_ENV="${RAILS_ENV:-production}"
 export NODE_ENV="${NODE_ENV:-production}"
 export INSTALLATION_ENV="${INSTALLATION_ENV:-docker}"
 
+# Disable widget API rate limiting by default - behind OSC ingress all
+# traffic shares the same source IP, causing Rack::Attack to throttle
+# all visitors after just 5 widget page loads.
+export ENABLE_RACK_ATTACK_WIDGET_API="${ENABLE_RACK_ATTACK_WIDGET_API:-false}"
+
 # Map OSC_HOSTNAME to Chatwoot's frontend URL
 if [ -n "$OSC_HOSTNAME" ]; then
     export FRONTEND_URL="${FRONTEND_URL:-https://${OSC_HOSTNAME}}"
