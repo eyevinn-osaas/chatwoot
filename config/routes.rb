@@ -8,6 +8,8 @@ Rails.application.routes.draw do
     omniauth_callbacks: 'devise_overrides/omniauth_callbacks'
   }, via: [:get, :post]
 
+  post 'resend_confirmation', to: 'auth/resend_confirmations#create'
+
   ## renders the frontend paths only if its not an api only server
   if ActiveModel::Type::Boolean.new.cast(ENV.fetch('CW_API_ONLY_SERVER', false))
     root to: 'api#index'
@@ -72,7 +74,9 @@ Rails.application.routes.draw do
             resources :copilot_threads, only: [:index, :create] do
               resources :copilot_messages, only: [:index, :create]
             end
-            resources :custom_tools
+            resources :custom_tools do
+              post :test, on: :collection
+            end
             resources :documents, only: [:index, :show, :create, :destroy]
             resource :tasks, only: [], controller: 'tasks' do
               post :rewrite
@@ -86,6 +90,7 @@ Rails.application.routes.draw do
           resources :agent_bots, only: [:index, :create, :show, :update, :destroy] do
             delete :avatar, on: :member
             post :reset_access_token, on: :member
+            post :reset_secret, on: :member
           end
           resources :contact_inboxes, only: [] do
             collection do
@@ -219,6 +224,7 @@ Rails.application.routes.draw do
             post :sync_templates, on: :member
             get :health, on: :member
             post :register_webhook, on: :member
+            post :reset_secret, on: :member
             if ChatwootApp.enterprise?
               resource :conference, only: %i[create destroy], controller: 'conference' do
                 get :token, on: :member
@@ -351,6 +357,13 @@ Rails.application.routes.draw do
             end
             resources :categories do
               post :reorder, on: :collection
+            end
+            namespace :articles do
+              resource :bulk_actions, only: [] do
+                post :translate
+                patch :update_status
+                delete :delete_articles
+              end
             end
             resources :articles do
               post :reorder, on: :collection
@@ -507,6 +520,7 @@ Rails.application.routes.draw do
               delete :destroy
             end
           end
+          resources :email_channel_migrations, only: [:create]
         end
       end
     end
@@ -618,6 +632,9 @@ Rails.application.routes.draw do
       root to: 'dashboard#index'
 
       resource :app_config, only: [:show, :create]
+      resource :push_diagnostics, only: [:show, :create] do
+        post :destroy_subscriptions, on: :collection
+      end
 
       # order of resources affect the order of sidebar navigation in super admin
       resources :accounts, only: [:index, :new, :create, :show, :edit, :update, :destroy] do
